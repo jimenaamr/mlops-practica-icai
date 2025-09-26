@@ -13,7 +13,7 @@ import os
 try:
     iris = pd.read_csv('data/iris_dataset.csv')
 except FileNotFoundError:
-    print("Error: El archivo 'data/iris_dataset.csv' no fue encontrado.")
+    print("Error: El archivo 'data/iris_dataset.csv' no ha sido encontrado.")
 
 # Dividir el DataFrame en características (X) y etiquetas (y)
 X = iris.drop('target', axis=1)
