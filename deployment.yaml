@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: mlops-api
-          image: gcr.io/still-nebula-476106-n3/mlops-api:latest
+          image: gcr.io/practicagke-476807/mlops-api:latest
           ports:
             - containerPort: 5000
