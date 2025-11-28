@@ -1,7 +1,13 @@
 import joblib
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import numpy as np
+from prometheus_client import Counter,generate_latest, CONTENT_TYPE_LATEST
 
+PREDICTION_COUNTER = Counter(
+'iris_prediction_count',
+'Contador de predicciones del modelo Iris por especie',
+['species']
+)
 # Cargar el modelo entrenado
 try:
     model = joblib.load('model.pkl')
@@ -11,6 +17,10 @@ except FileNotFoundError:
 
 # Inicializar la aplicación Flask
 app = Flask(__name__)
+
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -24,11 +34,20 @@ def predict():
 
         # Realizar la predicción
         prediction = model.predict(features)
+        prediction_int = int(prediction[0])
+
+        # Mapear el resultado numérico a una especie
+        species_map = {0: 'setosa', 1: 'versicolor', 2: 'virginica'}
+        predicted_species = species_map.get(prediction_int, 'unknown')
+
+        # Incrementar el contador de predicciones para la especie predicha
+        PREDICTION_COUNTER.labels(species=predicted_species).inc()
 
         # Devolver la predicción en formato JSON
-        return jsonify({'prediction': int(prediction[0])})
+        return jsonify({'prediction': prediction_int, 'species': predicted_species})
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
+    print("Iniciando API en puerto 5000...")
     app.run(host='0.0.0.0', port=5000)
